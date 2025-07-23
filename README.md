@@ -1,88 +1,96 @@
 # SANDBOX Database Explorer & Search
 
-A Streamlit app designed to run in Snowflake that provides an intuitive interface for exploring and searching data in the SANDBOX database.
+A Streamlit app designed to run in Snowflake that provides an intuitive interface for exploring and searching data in the SANDBOX database with granular control over search scope.
 
-## Features
+## ✨ Key Features
 
-- **🔄 Cascading Menus**: Auto-populating dropdowns for schema → table → column selection
-- **🎯 Multi-table Search**: Search across multiple tables and columns simultaneously  
-- **⚡ Optimized Search**: Uses Snowflake's SEARCH function for better performance
-- **📊 Interactive Results**: View and download search results
-- **🎨 Modern UI**: Clean, intuitive interface with helpful guidance
+- **🔄 Cascading Menus**: Auto-populating dropdowns for schema → table → column discovery
+- **🎯 Flexible Search Filtering**: Two-level selection system for maximum control
+- **🏗️ Granular Control**: Discover columns from many tables, then filter search to specific schemas/tables
+- **⚡ Optimized Search**: Uses Snowflake's SEARCH function for better performance than CONTAINS
+- **📊 Interactive Results**: View, filter, and download search results
+- **🎨 Modern UI**: Clean, intuitive interface with real-time feedback
 
-## Deployment Instructions
+## 🚀 How It Works
 
-### 1. Prerequisites
-- Access to a Snowflake account with SANDBOX database
-- Appropriate permissions to create and run Streamlit apps
-- Access to the INFORMATION_SCHEMA in the SANDBOX database
+### Two-Level Selection System
 
-### 2. Deploy to Snowflake
+**1. Data Discovery Level (Sidebar)**
+- Explore schemas, tables, and columns to understand your data structure
+- Select broad sets of columns you might be interested in
+- Use cascading menus to navigate the database hierarchy
 
-#### Option A: Using Snowflake Web Interface
-1. Log into your Snowflake account
-2. Navigate to **Streamlit** in the left sidebar
-3. Click **+ Streamlit App**
-4. Choose **Create from GitHub Repository** or **Upload from Stage**
-5. Upload the following files:
-   - `streamlit_app.py`
-   - `environment.yml`
-6. Set the **Main File** to `streamlit_app.py`
-7. Choose appropriate warehouse and database settings
-8. Click **Create**
+**2. Search Execution Level (Main Area)**
+- Filter down to specific schemas and tables you want to search
+- Execute searches only in your filtered scope
+- Maintain flexibility while controlling search performance
 
-#### Option B: Using SQL Commands
+## 📋 Step-by-Step Usage
+
+### Step 1: Discover Your Data (Sidebar)
+1. **Select Schema(s)**: Choose schemas from SANDBOX to populate table options
+2. **Select Table(s)**: Pick tables to populate column options  
+3. **Select Column(s)**: Either:
+   - ✅ Check "Select all columns" for all columns from selected tables
+   - 🎯 Manually select specific columns from the dropdown
+
+### Step 2: Filter Search Scope (Main Area)
+4. **Schema Filter**: Choose which specific schemas to actually search in
+5. **Table Filter**: Choose which specific tables to actually search in
+6. **Verify Scope**: Review the search scope summary before executing
+
+### Step 3: Execute Search
+7. **Enter Search Term**: Type your search string
+8. **Search**: Click the search button to find matches using Snowflake's SEARCH function
+9. **Review Results**: View matches with schema/table context and download if needed
+
+## 💡 Pro Tips
+
+- **Broad Discovery, Narrow Search**: Select columns from 10 schemas, then search in just 2
+- **Default Behavior**: Search filters default to all available schemas/tables for convenience
+- **Performance**: Use filters to limit search scope for better performance on large datasets
+- **Column Context**: Columns show their data types: `schema.table.column (VARCHAR)`
+
+## 🛠️ Deployment Instructions
+
+### Prerequisites
+- Access to Snowflake account with SANDBOX database
+- Permissions to create and run Streamlit apps
+- Access to INFORMATION_SCHEMA in SANDBOX database
+
+### Deploy to Snowflake
+
+**Option A: Snowflake Web Interface**
+1. Log into Snowflake → Navigate to **Streamlit**
+2. Click **+ Streamlit App** → **Upload from Stage** or **Create from GitHub**
+3. Upload: `streamlit_app.py` and `environment.yml`
+4. Set **Main File**: `streamlit_app.py`
+5. Configure warehouse and database settings → **Create**
+
+**Option B: SQL Commands**
 ```sql
--- Create the Streamlit app
 CREATE STREAMLIT SANDBOX_EXPLORER
 ROOT_LOCATION = '@<your_stage_name>/sandbox_explorer'
 MAIN_FILE = 'streamlit_app.py'
 QUERY_WAREHOUSE = '<your_warehouse_name>';
-
--- Upload files to the stage first using PUT commands or Snowflake web interface
 ```
 
-### 3. Required Permissions
-
-Ensure your role has the following permissions:
+### Required Permissions
 ```sql
--- Grant usage on SANDBOX database and its schemas
+-- Database and schema access
 GRANT USAGE ON DATABASE SANDBOX TO ROLE <your_role>;
 GRANT USAGE ON ALL SCHEMAS IN DATABASE SANDBOX TO ROLE <your_role>;
 
--- Grant select permissions on information schema
+-- Information schema access
 GRANT SELECT ON ALL TABLES IN SCHEMA SANDBOX.INFORMATION_SCHEMA TO ROLE <your_role>;
 
--- Grant select permissions on tables you want to search
+-- Data access for searching
 GRANT SELECT ON ALL TABLES IN DATABASE SANDBOX TO ROLE <your_role>;
 ```
 
-## How to Use
+## 🔧 Technical Implementation
 
-### Step 1: Select Schemas
-- Choose one or more schemas from the SANDBOX database
-- The app will automatically query `SANDBOX.INFORMATION_SCHEMA.SCHEMATA`
-
-### Step 2: Select Tables  
-- Pick specific tables from your selected schema(s)
-- Tables are displayed as `schema.table` for clarity
-- Multiple table selection is supported
-
-### Step 3: Select Columns
-- **Option A**: Check "Select all columns" to search across all columns in selected tables
-- **Option B**: Manually select specific columns from the dropdown
-- Columns are displayed with their data types: `schema.table.column (DATA_TYPE)`
-
-### Step 4: Search
-- Enter your search term in the text input
-- Click the "🔍 Search" button
-- Results will appear below with download option
-
-## Technical Details
-
-### Database Queries
-
-The app uses these key queries:
+### Core Database Queries
 
 **Schema Discovery:**
 ```sql
@@ -109,7 +117,7 @@ WHERE (TABLE_SCHEMA = '<schema>' AND TABLE_NAME = '<table>')
 ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION
 ```
 
-**Search Query:**
+**Search Execution:**
 ```sql
 SELECT 
     '<schema>' as SCHEMA_NAME,
@@ -120,47 +128,35 @@ WHERE SEARCH("<column1>", "<column2>", '<search_string>')
 LIMIT 1000
 ```
 
-### Performance Considerations
+### Performance Optimizations
 
-- **SEARCH Function**: Uses Snowflake's optimized SEARCH function instead of CONTAINS for better performance
-- **Result Limiting**: Limits results to 1000 rows per table to prevent excessive data transfer
-- **Efficient Caching**: Uses Streamlit session state to avoid re-querying metadata
-- **Error Handling**: Graceful error handling with informative messages
+- ⚡ **SEARCH vs CONTAINS**: Uses Snowflake's optimized SEARCH function
+- 🎯 **Scope Limiting**: Search filters prevent unnecessary table scans
+- 💾 **Smart Caching**: Session state prevents re-querying metadata
+- 📊 **Result Limiting**: 1000 rows per table to manage performance
+- 🛡️ **Error Handling**: Graceful handling with informative messages
 
-### Limitations
+## 🐛 Troubleshooting
 
-- Search results are limited to 1000 rows per table
-- Requires SELECT permissions on target tables
-- SEARCH function behavior depends on Snowflake's text search capabilities
-- Large result sets may impact performance
+| Issue | Solution |
+|-------|----------|
+| **"No schemas found"** | Check SANDBOX database exists, verify INFORMATION_SCHEMA permissions |
+| **"Error fetching tables/columns"** | Verify schema names, check SELECT permissions on INFORMATION_SCHEMA |
+| **"Error performing search"** | Confirm SELECT permissions on target tables, verify data exists |
+| **Performance Issues** | Use search filters to limit scope, check warehouse size |
+| **Empty Results** | Verify search string format, check if data contains expected values |
 
-## Troubleshooting
+## 📄 Files Structure
 
-### Common Issues
+```
+├── streamlit_app.py      # Main Streamlit application
+├── environment.yml       # Conda environment dependencies  
+└── README.md            # This documentation
+```
 
-**"No schemas found"**
-- Check if SANDBOX database exists
-- Verify permissions on INFORMATION_SCHEMA
-- Ensure proper role assignments
+## 🆘 Support
 
-**"Error fetching tables/columns"**  
-- Verify schema names are correct
-- Check SELECT permissions on INFORMATION_SCHEMA tables
-- Confirm table types (only BASE TABLEs are shown)
-
-**"Error performing search"**
-- Verify SELECT permissions on target tables
-- Check if tables contain data
-- Ensure search string doesn't contain SQL injection characters
-
-**Performance Issues**
-- Consider selecting fewer columns/tables
-- Use more specific search terms
-- Check warehouse size allocation
-
-## Support
-
-For issues related to:
-- **Snowflake Setup**: Consult Snowflake documentation
-- **Permissions**: Contact your Snowflake administrator  
-- **App Functionality**: Review the code comments and error messages 
+- **Snowflake Setup**: [Snowflake Documentation](https://docs.snowflake.com/)
+- **Permissions**: Contact your Snowflake administrator
+- **App Issues**: Check error messages and console logs
+- **Feature Requests**: Review code comments for customization options 
