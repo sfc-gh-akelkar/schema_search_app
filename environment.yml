@@ -1,0 +1,8 @@
+name: streamlit_env
+channels:
+  - snowflake
+  - conda-forge
+dependencies:
+  - streamlit
+  - pandas
+  - snowflake-snowpark-python 
