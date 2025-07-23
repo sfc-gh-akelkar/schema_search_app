@@ -2,6 +2,11 @@
 
 A powerful Streamlit app designed to run in Snowflake that provides an intuitive interface for exploring and searching data across any accessible database with granular control over search scope and advanced performance optimizations.
 
+## Screenshots
+![screenshot1](screenshot1.png) 
+
+![screenshot2](screenshot2.png) 
+
 ## ✨ Key Features
 
 - **🗃️ Multi-Database Support**: Choose from any accessible database in your Snowflake environment
